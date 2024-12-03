@@ -23,7 +23,7 @@ async fn main() -> anyhow::Result<()> {
             continue;
         }
 
-        println!("Generating Day {day}");
+        println!("{URL}/day/{day}");
 
         let url = format!("{URL}/day/{day}/input");
         let session = std::env::var("SESSION")?;
