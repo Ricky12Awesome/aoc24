@@ -24,13 +24,10 @@ fn part1(grid: &[Vec<char>]) -> usize {
     let search = b"XMAS".map(char::from).map(Some);
 
     let offsets = [
-        // -
         [(0, 0), (1, 0), (2, 0), (3, 0)],
         [(3, 0), (2, 0), (1, 0), (0, 0)],
-        // |
         [(0, 0), (0, 1), (0, 2), (0, 3)],
         [(0, 3), (0, 2), (0, 1), (0, 0)],
-        // X
         [(0, 0), (1, 1), (2, 2), (3, 3)],
         [(0, 0), (1, -1), (2, -2), (3, -3)],
         [(0, 0), (-1, 1), (-2, 2), (-3, 3)],
@@ -65,22 +62,14 @@ fn count<const N: usize>(
     let height = grid.len() as isize;
     let width = grid[0].len() as isize;
 
-    let mut values = HashSet::new();
-
-    for y in 0..height {
-        for x in 0..width {
-            for offset in offsets {
-                let value = get(grid, x, y, offset);
-                let result = value.map(|it| it.map(|it| it.1));
-
-                if result == search {
-                    values.insert(value);
-                }
-            }
-        }
-    }
-
-    values.len()
+    offsets
+        .iter()
+        .flat_map(|offset| (0..height).map(move |y| (offset, y)))
+        .flat_map(|(offset, y)| (0..width).map(move |x| (offset, x, y)))
+        .map(|(offset, x, y)| get(grid, x, y, offset))
+        .filter(|(_, result)| result.eq(&search))
+        .collect::<HashSet<_>>()
+        .len()
 }
 
 fn get_char(
@@ -102,6 +91,11 @@ fn get<const N: usize>(
     x: isize,
     y: isize,
     offsets: &[(isize, isize); N],
-) -> [Option<((usize, usize), char)>; N] {
-    offsets.map(|offset| get_char(grid, x, y, offset))
+) -> ([Option<(usize, usize)>; N], [Option<char>; N]) {
+    let value = offsets.map(|offset| get_char(grid, x, y, offset));
+
+    (
+        value.map(|it| it.map(|it| it.0)),
+        value.map(|it| it.map(|it| it.1)),
+    )
 }
